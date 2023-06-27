@@ -3,8 +3,8 @@
 	public class TimeslotDto
 	{
 		public DateTime Date { get; set; }
-		public TimeSpan Start { get; set; }
-		public TimeSpan End { get; set; }
+		public DateTime Start { get; set; }
+		public DateTime End { get; set; }
 
 		public TimeslotDto(DateTime date)
 		{
