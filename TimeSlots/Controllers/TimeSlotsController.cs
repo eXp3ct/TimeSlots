@@ -34,18 +34,12 @@ namespace TimeSlots.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> Create(Timeslot timeslot)
+		public async Task<IActionResult> Create(DateTime date, string start, string end)
 		{
-			timeslot.Id = Guid.NewGuid();
-			timeslot.UserId = Guid.NewGuid();
-			timeslot.GateId = Guid.NewGuid();
+			var query = new SetTimeslotQuery(date, start, end);
+			await _mediator.Send(query);
 
-			await _context.Timeslots.AddAsync(timeslot);
-			await _context.SaveChangesAsync();
-
-			_logger.LogInformation($"Stored {timeslot.Id} timeslots in timeslots.db");
-
-			return CreatedAtAction(nameof(Get), new { id = timeslot.Id }, timeslot);
+			return Ok();
 		}
 	}
 }
