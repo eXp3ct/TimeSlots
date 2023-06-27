@@ -1,33 +1,51 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using MediatR;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using TimeSlots.DataBase;
 using TimeSlots.Model;
-
+using TimeSlots.Queries;
+using TimeSlots.Exceptions;
 namespace TimeSlots.Controllers
 {
 	[Route("[controller]")]
 	public class TimeSlotsController : Controller
 	{
 		private readonly TimeslotsDbContext _context;
+		private readonly ILogger<TimeSlotsController> _logger;
+		private readonly IMediator _mediator;
 
-		public TimeSlotsController(TimeslotsDbContext context)
+		public TimeSlotsController(TimeslotsDbContext context, ILogger<TimeSlotsController> logger, IMediator mediator)
 		{
 			_context = context;
+			_logger = logger;
+			_mediator = mediator;
 		}
 
 		[HttpGet]
-		public ActionResult<IList<Timeslot>> Get()
+		public async Task<ActionResult<IList<TimeslotDto>>> Get(DateTime date, int pallets)
 		{
-			return _context.Timeslots.ToList();
+			if (date.Day <= DateTime.Now.Day || pallets <= 0)
+				return BadRequest(new InvalidGetTimeSlotsRequestException(date, pallets));
+
+			var query = new GetTimeslotsQuery(date, pallets);
+			var timeslots = await _mediator.Send(query);
+
+			return Ok(timeslots);
 		}
 
 		[HttpPost]
-		public ActionResult<Timeslot> Create(Timeslot timeslot)
+		public async Task<IActionResult> Create(Timeslot timeslot)
 		{
+			timeslot.Id = Guid.NewGuid();
+			timeslot.UserId = Guid.NewGuid();
+			timeslot.GateId = Guid.NewGuid();
 
-			_context.Timeslots.Add(timeslot);
-			_context.SaveChanges();
+			await _context.Timeslots.AddAsync(timeslot);
+			await _context.SaveChangesAsync();
 
-			return CreatedAtAction(nameof(Get), new { id = timeslot.Id });
+			_logger.LogInformation($"Stored {timeslot.Id} timeslots in timeslots.db");
+
+			return CreatedAtAction(nameof(Get), new { id = timeslot.Id }, timeslot);
 		}
 	}
 }
