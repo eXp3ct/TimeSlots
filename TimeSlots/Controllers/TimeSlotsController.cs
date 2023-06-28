@@ -22,7 +22,7 @@ namespace TimeSlots.Controllers
 		}
 
 		[HttpGet]
-		public async Task<ActionResult<IList<TimeslotDto>>> Get(DateTime date, int pallets)
+		public async Task<ActionResult<IList<TimeslotDto>>> GetTimeslots(DateTime date, int pallets)
 		{
 			if (date.Day <= DateTime.Now.Day || pallets <= 0)
 				return BadRequest(new InvalidGetTimeSlotsRequestException(date, pallets));
@@ -34,7 +34,7 @@ namespace TimeSlots.Controllers
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> Create(DateTime date, string start, string end)
+		public async Task<IActionResult> SetTimeslots(DateTime date, string start, string end)
 		{
 			var query = new SetTimeslotQuery(date, start, end);
 			await _mediator.Send(query);
