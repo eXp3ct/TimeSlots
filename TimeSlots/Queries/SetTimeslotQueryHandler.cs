@@ -8,12 +8,10 @@ namespace TimeSlots.Queries
 	public class SetTimeslotQueryHandler : IRequestHandler<SetTimeslotQuery>
 	{
 		private readonly TimeslotsDbContext _context;
-		private readonly ILogger<SetTimeslotQueryHandler> _logger;	
 
-		public SetTimeslotQueryHandler(TimeslotsDbContext context, ILogger<SetTimeslotQueryHandler> logger)
+		public SetTimeslotQueryHandler(TimeslotsDbContext context)
 		{
 			_context = context;
-			_logger = logger;
 		}
 
 		public async Task Handle(SetTimeslotQuery request, CancellationToken cancellationToken)
@@ -30,9 +28,6 @@ namespace TimeSlots.Queries
 
 			await _context.Timeslots.AddAsync(timeslot, cancellationToken);
 			await _context.SaveChangesAsync(cancellationToken);
-
-			string message = $"Timeslot {timeslot.Id} seems like added to DB";
-			_logger.LogInformation(message, cancellationToken);
 		}
 	}
 }

@@ -9,13 +9,6 @@ namespace TimeSlots.Queries
 		public string Start { get; set; }
 		public string End { get; set; }
 
-        public SetTimeslotQuery(ReservationDto reservation)
-        {
-            Date = reservation.Date;
-			Start = reservation.Start;
-			End = reservation.End;
-        }
-
 		public SetTimeslotQuery(DateTime date, string start, string end)
 		{
 			Date = date;

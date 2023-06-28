@@ -10,14 +10,10 @@ namespace TimeSlots.Controllers
 	[Route("[controller]")]
 	public class TimeSlotsController : Controller
 	{
-		private readonly TimeslotsDbContext _context;
-		private readonly ILogger<TimeSlotsController> _logger;
 		private readonly IMediator _mediator;
 
-		public TimeSlotsController(TimeslotsDbContext context, ILogger<TimeSlotsController> logger, IMediator mediator)
+		public TimeSlotsController(IMediator mediator)
 		{
-			_context = context;
-			_logger = logger;
 			_mediator = mediator;
 		}
 
