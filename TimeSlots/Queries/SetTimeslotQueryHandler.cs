@@ -22,6 +22,7 @@ namespace TimeSlots.Queries
 				Date = request.Date,
 				From = request.Start,
 				To = request.End,
+				//ToDo учитывать что временной промежуток может быть занят у определённых ворот
 				GateId = (await _context.Gates.ToListAsync(cancellationToken))[new Random().Next(0, _context.Gates.Count())].Id,
 				UserId = Guid.NewGuid()
 			};

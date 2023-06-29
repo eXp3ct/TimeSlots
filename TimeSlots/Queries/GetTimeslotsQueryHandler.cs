@@ -6,86 +6,89 @@ using TimeSlots.Model;
 
 namespace TimeSlots.Queries
 {
-	public class GetTimeslotsQueryHandler : IRequestHandler<GetTimeslotsQuery, IList<TimeslotDto>>
-	{
-		private readonly TimeslotsDbContext _context;
-		private readonly TimeOnly GateStart = new(0, 0, 0);
-		private readonly TimeOnly GateEnd = new(23, 30, 0);
+    public class GetTimeslotsQueryHandler : IRequestHandler<GetTimeslotsQuery, IEnumerable<TimeslotDto>>
+    {
+        private readonly TimeslotsDbContext _context;
+        private readonly TimeOnly GateStart = new(0, 0, 0);
+        private readonly TimeOnly GateEnd = new(23, 30, 0);
 
-		public GetTimeslotsQueryHandler(TimeslotsDbContext context)
-		{
-			_context = context;
-		}
+        public GetTimeslotsQueryHandler(TimeslotsDbContext context)
+        {
+            _context = context;
+        }
 
-		public async Task<IList<TimeslotDto>> Handle(GetTimeslotsQuery request, CancellationToken cancellationToken)
-		{
-			var dto = new TimeslotsDto();
-			var daysQueue = new Queue<DateTime>(3);
-			daysQueue.Enqueue(request.Date.AddDays(-1));
-			daysQueue.Enqueue(request.Date);
-			daysQueue.Enqueue(request.Date.AddDays(1));
+        public async Task<IEnumerable<TimeslotDto>> Handle(GetTimeslotsQuery request, CancellationToken cancellationToken)
+        {
+            var dto = new TimeslotsDto();
+            var daysQueue = new Queue<DateTime>(3);
+            daysQueue.Enqueue(request.Date.AddDays(-1));
+            daysQueue.Enqueue(request.Date);
+            daysQueue.Enqueue(request.Date.AddDays(1));
 
-			var minutesNeeded = request.Pallets * Constants.Constants.PalletTime;
-			var moscowTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
+            var minutesNeeded = request.Pallets * Constants.Constants.PalletTime;
 
-			while (daysQueue.Any())
-			{
-				var day = daysQueue.Dequeue();
+            //Убрать
+            var moscowTimeZone = TimeZoneInfo.FindSystemTimeZoneById("Europe/Moscow");
 
-				var currentTime = TimeZoneInfo.ConvertTime(new DateTime(day.Year, day.Month,
-					day.Day, GateStart.Hour, GateStart.Minute, GateStart.Second), moscowTimeZone);
-				var endTime = TimeZoneInfo.ConvertTime(new DateTime(day.Year, day.Month,
-					day.Day, GateEnd.Hour, GateEnd.Minute, GateEnd.Second), moscowTimeZone);
+            while (daysQueue.Any())
+            {
+                var day = daysQueue.Dequeue();
 
-				while (currentTime <= endTime)
-				{
-					var roundedMinutes = (int)Math.Ceiling(minutesNeeded / 30f) * 30;
-					var timeslot = new TimeslotDto(day)
-					{
-						Start = currentTime,
-						End = currentTime.AddMinutes(roundedMinutes)
-					};
+                var currentTime = TimeZoneInfo.ConvertTime(new DateTime(day.Year, day.Month,
+                    day.Day, GateStart.Hour, GateStart.Minute, GateStart.Second), moscowTimeZone);
+                var endTime = TimeZoneInfo.ConvertTime(new DateTime(day.Year, day.Month,
+                    day.Day, GateEnd.Hour, GateEnd.Minute, GateEnd.Second), moscowTimeZone);
 
-					if (timeslot.End >= endTime)
-						break;
+                while (currentTime <= endTime)
+                {
+                    var roundedMinutes = (int)Math.Ceiling(minutesNeeded / 30f) * 30;
+                    var timeslot = new TimeslotDto(day)
+                    {
+                        Start = currentTime,
+                        End = currentTime.AddMinutes(roundedMinutes)
+                    };
 
-					var overlaps = await CheckForOverlaps(timeslot); // Асинхронная проверка на перекрытия
+                    //ToDo перенос на след день
+                    if (timeslot.End >= endTime)
+                        break;
 
-					if (!overlaps)
-					{
-						dto.Timeslots.Add(timeslot);
-					}
-					else
-					{
-						currentTime = new DateTime(day.Year, day.Month, day.Day, timeslot.End.Hour, timeslot.End.Minute, timeslot.End.Second);
-						continue;
-					}
+                    var overlaps = await CheckForOverlaps(timeslot); // Асинхронная проверка на перекрытия
 
-					currentTime = currentTime.AddMinutes(roundedMinutes);
-				}
-			}
+                    if (!overlaps)
+                    {
+                        dto.Timeslots.Add(timeslot);
+                    }
+                    else
+                    {
+                        currentTime = new DateTime(day.Year, day.Month, day.Day, timeslot.End.Hour, timeslot.End.Minute, timeslot.End.Second);
+                        continue;
+                    }
 
-			return dto.Timeslots;
-		}
+                    currentTime = currentTime.AddMinutes(roundedMinutes);
+                }
+            }
 
-		private async Task<bool> CheckForOverlaps(TimeslotDto timeslot)
-		{
-			var existingTimeslots = await _context.Timeslots
-				.Where(t => t.Date.Date == timeslot.Date.Date)
-				.ToListAsync();
+            return dto.Timeslots;
+        }
 
-			foreach (var existingTimeslot in existingTimeslots)
-			{
-				var existingStart = TimeSpan.Parse(existingTimeslot.From);
-				var existingEnd = TimeSpan.Parse(existingTimeslot.To);
-				if (timeslot.Start.TimeOfDay < existingEnd && existingStart < timeslot.End.TimeOfDay)
-				{
-					return true;
-				}
-			}
+        private async Task<bool> CheckForOverlaps(TimeslotDto timeslot)
+        {
+            var existingTimeslots = await _context.Timeslots
+                .Where(t => t.Date.Date == timeslot.Date.Date)
+                .ToListAsync();
 
-			return false;
-		}
+            foreach (var existingTimeslot in existingTimeslots)
+            {
+                var existingStart = TimeSpan.Parse(existingTimeslot.From);
+                var existingEnd = TimeSpan.Parse(existingTimeslot.To);
+                if (timeslot.Start.TimeOfDay < existingEnd && existingStart < timeslot.End.TimeOfDay)
+                {
+                    return true;
+                }
+            }
 
-	}
+            return false;
+        }
+
+    }
 }
