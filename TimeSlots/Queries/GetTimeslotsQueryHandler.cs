@@ -36,13 +36,10 @@ namespace TimeSlots.Queries
 				var day = daysQueue.Dequeue();
 				DateTime currentTime;
 				if (wrapped)
-				{
 					currentTime = wrappedTime;
-				}
 				else
-				{
 					currentTime = day.FromTime(_gateStart); 
-				}
+
 				var endTime = day.FromTime(_gateEnd);
 
 				while (currentTime <= endTime)
@@ -59,6 +56,10 @@ namespace TimeSlots.Queries
 						wrapped = true;
 						wrappedTime = timeslot.End;
 					}
+					else
+					{
+						wrapped = false;
+					}
 
 					var overlaps = await CheckForOverlaps(timeslot); // Асинхронная проверка на перекрытия
 
@@ -68,7 +69,8 @@ namespace TimeSlots.Queries
 					}
 					else
 					{
-						currentTime = new DateTime(day.Year, day.Month, day.Day, timeslot.End.Hour, timeslot.End.Minute, timeslot.End.Second);
+						//currentTime = new DateTime(day.Year, day.Month, day.Day, timeslot.End.Hour, timeslot.End.Minute, timeslot.End.Second);
+						currentTime = day.FromTime(TimeOnly.FromTimeSpan(timeslot.End.TimeOfDay));
 						continue;
 					}
 

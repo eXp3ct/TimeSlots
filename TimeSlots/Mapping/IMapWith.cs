@@ -2,8 +2,8 @@
 
 namespace TimeSlots.Mapping
 {
-	public interface IMapWith<T> where T : class
+	public interface IMapWith<TDestination> where TDestination : class
 	{
-		public void Mapping(Profile profile) => profile.CreateMap(typeof(T), GetType());
+		public void Mapping(Profile profile) => profile.CreateMap(typeof(TDestination), GetType());
 	}
 }
