@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using TimeSlots.DataBase;
+using TimeSlots.Mapping;
 
 namespace TimeSlots
 {
@@ -36,6 +37,7 @@ namespace TimeSlots
 			services.AddDbContext<TimeslotsDbContext>();
 			services.AddMvc();
 			services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 			services.AddEndpointsApiExplorer();
 			services.AddSwaggerGen();
 		}

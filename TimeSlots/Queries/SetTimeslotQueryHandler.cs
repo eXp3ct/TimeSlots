@@ -1,5 +1,7 @@
-﻿using MediatR;
+﻿using AutoMapper;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Threading;
 using TimeSlots.DataBase;
 using TimeSlots.Model;
 
@@ -8,13 +10,24 @@ namespace TimeSlots.Queries
 	public class SetTimeslotQueryHandler : IRequestHandler<SetTimeslotQuery>
 	{
 		private readonly TimeslotsDbContext _context;
+		private readonly IMapper _mapper;
 
-		public SetTimeslotQueryHandler(TimeslotsDbContext context)
+		public SetTimeslotQueryHandler(TimeslotsDbContext context, IMapper mapper)
 		{
 			_context = context;
+			_mapper = mapper;
 		}
 
 		public async Task Handle(SetTimeslotQuery request, CancellationToken cancellationToken)
+		{
+			var timeslot = _mapper.Map<Timeslot>(request);
+			timeslot.GateId = await GetFreeGateId(request, cancellationToken);
+
+			await _context.Timeslots.AddAsync(timeslot, cancellationToken);
+			await _context.SaveChangesAsync(cancellationToken);
+		}
+
+		private async Task<Guid> GetFreeGateId(SetTimeslotQuery request, CancellationToken cancellationToken)
 		{
 			var gates = await _context.Gates.ToListAsync(cancellationToken);
 
@@ -31,26 +44,14 @@ namespace TimeSlots.Queries
 			if (availableGates.Count == 0)
 			{
 				// Нет доступных гейтов в указанное время
-				
-				return;
+
+				return Guid.Empty;
 			}
 
 			var random = new Random();
 			var randomGate = availableGates[random.Next(0, availableGates.Count)];
 
-			var timeslot = new Timeslot()
-			{
-				Id = Guid.NewGuid(),
-				Date = request.Date,
-				From = request.Start,
-				To = request.End,
-				GateId = randomGate.Id,
-				UserId = Guid.NewGuid()
-			};
-
-			await _context.Timeslots.AddAsync(timeslot, cancellationToken);
-			await _context.SaveChangesAsync(cancellationToken);
+			return randomGate.Id;
 		}
-
 	}
 }
