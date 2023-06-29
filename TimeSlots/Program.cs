@@ -18,7 +18,8 @@ internal class Program
 		{
 			var context = services.GetRequiredService<TimeslotsDbContext>();
 			DbInitializer.Initialize(context);
-		}catch (Exception)
+		}
+		catch (Exception)
 		{
 			throw new Exception("Unable to initialize database");
 		}
