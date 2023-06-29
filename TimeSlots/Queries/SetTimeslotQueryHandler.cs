@@ -32,7 +32,7 @@ namespace TimeSlots.Queries
 			var gates = await _context.Gates.ToListAsync(cancellationToken);
 
 			var timeslots = await _context.Timeslots
-				.Where(t => t.Date == request.Date)
+				.Where(t => t.Date.Date == request.Date.Date)
 				.ToListAsync(cancellationToken);
 
 			var occupiedGateIds = timeslots
