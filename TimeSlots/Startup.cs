@@ -1,7 +1,10 @@
 ﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.FileProviders;
 using System.Reflection;
 using TimeSlots.DataBase;
+using TimeSlots.Mapping;
 
 namespace TimeSlots
 {
@@ -23,19 +26,26 @@ namespace TimeSlots
 			}
 
 			app.UseHttpsRedirection();
+			app.UseStaticFiles();
 			app.UseRouting();
 			app.UseAuthorization();
 			app.UseEndpoints(endpoints =>
 			{
 				endpoints.MapControllers();
+				endpoints.MapRazorPages();
 			});
 		}
+
 		public void ConfigureServices(IServiceCollection services)
 		{
+			services.AddRazorPages();
 			services.AddControllers();
-			services.AddDbContext<TimeslotsDbContext>();
+			services.AddDbContext<TimeslotsDbContext>(
+				options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
+				);
 			services.AddMvc();
 			services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+			services.AddAutoMapper(Assembly.GetExecutingAssembly());
 			services.AddEndpointsApiExplorer();
 			services.AddSwaggerGen();
 		}

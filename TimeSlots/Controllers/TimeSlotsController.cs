@@ -17,25 +17,25 @@ namespace TimeSlots.Controllers
 			_mediator = mediator;
 		}
 
-		[HttpGet]
-		public async Task<ActionResult<IList<TimeslotDto>>> GetTimeslots(DateTime date, int pallets)
+		[HttpPost]
+		[Route("/gettimeslots")]
+		public async Task<IActionResult> GetTimeslots([FromBody] GetTimeslotsQuery query)
 		{
-			if (date.Day <= DateTime.Now.Day || pallets <= 0)
-				return BadRequest(new InvalidGetTimeSlotsRequestException(date, pallets));
+			if (query.Date <= DateTime.Now || query.Pallets <= 0)
+				return BadRequest(new AppResultWithData<GetTimeslotsQuery>("Invalid request, check number of pallets or date", true, query));
 
-			var query = new GetTimeslotsQuery(date, pallets);
 			var timeslots = await _mediator.Send(query);
 
 			return Ok(timeslots);
 		}
 
 		[HttpPost]
-		public async Task<IActionResult> SetTimeslots(DateTime date, string start, string end)
+		[Route("/settimeslots")]
+		public async Task<IActionResult> SetTimeslots([FromBody] SetTimeslotQuery query)
 		{
-			var query = new SetTimeslotQuery(date, start, end);
 			await _mediator.Send(query);
 
-			return Ok();
+			return Ok(new AppResultWithData<SetTimeslotQuery>("Successfuly reserved timeslot", false, query));
 		}
 	}
 }

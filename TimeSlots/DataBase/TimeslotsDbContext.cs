@@ -9,9 +9,8 @@ namespace TimeSlots.DataBase
 		public DbSet<Gate> Gates { get; set; }
 		public DbSet<Platform> Platforms { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-		{
-			optionsBuilder.UseSqlite("Data Source=timeslots.db");
-		}
-	}
+        public TimeslotsDbContext(DbContextOptions<TimeslotsDbContext> options) : base(options)
+        {
+        }
+    }
 }

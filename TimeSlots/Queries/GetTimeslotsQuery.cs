@@ -4,7 +4,7 @@ using TimeSlots.Model;
 
 namespace TimeSlots.Queries
 {
-    public class GetTimeslotsQuery : IRequest<IList<TimeslotDto>>
+    public class GetTimeslotsQuery : IRequest<IEnumerable<TimeslotDto>>
     {
         public DateTime Date { get; set; }
 		public int Pallets { get; set; }
@@ -14,5 +14,10 @@ namespace TimeSlots.Queries
 			Date = date;
 			Pallets = pallets;
 		}
-	}
+
+        public GetTimeslotsQuery()
+        {
+            
+        }
+    }
 }

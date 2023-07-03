@@ -1,0 +1,70 @@
+﻿@page
+@model TimeSlots.Pages.TestModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
+@{
+	
+}
+@using TimeSlots.DataBase;
+@using System.Text.Json;
+@using Newtonsoft.Json;
+@inject TimeslotsDbContext _context;
+
+<style>
+	.container{
+		display: grid;
+		place-items: center;
+		flex-direction: column;
+		max-width: 400px;
+		margin: 0 auto;
+	}
+	.dates{
+		background: wheat;
+		width: auto;
+		height: auto;
+		display: flex;
+		flex-direction: column;
+	}
+	th{
+		padding: 10px;
+	}
+</style>
+<div class="container">
+	<form method="post" asp-antiforgery="true">
+		<p>
+			<label asp-for="@Model.Date">Date</label><br/>
+			<input type="date" asp-for="@Model.Date" />
+		</p>
+		<p>
+			<label asp-for="@Model.Pallets">Pallets</label><br />
+			<input type="number" asp-for="@Model.Pallets" />
+		</p>
+		<input type="submit" value="Submit"/>
+	</form>
+	
+	<table class="dates">
+		<thead>
+			<tr>
+				@foreach (var day in Model.Timeslots.Keys)
+				{
+					<th>
+						@day.ToShortDateString()
+					</th>
+				}
+			</tr>
+		</thead>
+		<tbody>
+			@foreach(var row in Model.Timeslots)
+			{
+				<tr>
+					@foreach (var time in row.Value)
+					{
+						<td>
+							@time.Start
+						</td>
+					}
+				</tr>
+			}
+		</tbody>
+	</table>
+</div>
+
