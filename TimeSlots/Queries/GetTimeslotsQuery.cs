@@ -14,5 +14,10 @@ namespace TimeSlots.Queries
 			Date = date;
 			Pallets = pallets;
 		}
-	}
+
+        public GetTimeslotsQuery()
+        {
+            
+        }
+    }
 }

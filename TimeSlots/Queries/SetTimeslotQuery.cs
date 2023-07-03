@@ -5,7 +5,7 @@ using TimeSlots.Model;
 
 namespace TimeSlots.Queries
 {
-	public class SetTimeslotQuery : IRequest, IMapWith<Timeslot>
+	public class SetTimeslotQuery : IRequest
 	{
 		public DateTime Date { get; set; }
 		public string Start { get; set; }
@@ -21,21 +21,21 @@ namespace TimeSlots.Queries
         {
         }
 
-        public void Mapping(Profile profile)
-		{
-			profile.CreateMap<SetTimeslotQuery, Timeslot>()
-				.ForMember(timeslot => timeslot.Id,
-					opt => opt.MapFrom(query => Guid.NewGuid()))
-				.ForMember(timeslot => timeslot.Date,
-					opt => opt.MapFrom(query => query.Date))
-				.ForMember(timeslot => timeslot.From,
-					opt => opt.MapFrom(query => query.Start))
-				.ForMember(timeslot => timeslot.To,
-					opt => opt.MapFrom(query => query.End))
-				.ForMember(timeslot => timeslot.GateId,
-					opt => opt.Ignore())
-				.ForMember(timeslot => timeslot.UserId,
-					opt => opt.MapFrom(query => Guid.NewGuid()));
-		}
+  //      public void Mapping(Profile profile)
+		//{
+		//	profile.CreateMap<SetTimeslotQuery, Timeslot>()
+		//		.ForMember(timeslot => timeslot.Id,
+		//			opt => opt.MapFrom(query => Guid.NewGuid()))
+		//		.ForMember(timeslot => timeslot.Date,
+		//			opt => opt.MapFrom(query => query.Date))
+		//		.ForMember(timeslot => timeslot.From,
+		//			opt => opt.MapFrom(query => query.Start))
+		//		.ForMember(timeslot => timeslot.To,
+		//			opt => opt.MapFrom(query => query.End))
+		//		.ForMember(timeslot => timeslot.GateId,
+		//			opt => opt.Ignore())
+		//		.ForMember(timeslot => timeslot.UserId,
+		//			opt => opt.MapFrom(query => Guid.NewGuid()));
+		//}
 	}
 }
