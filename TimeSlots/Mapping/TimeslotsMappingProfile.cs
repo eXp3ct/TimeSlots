@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using TimeSlots.Model;
 using TimeSlots.Queries;
 

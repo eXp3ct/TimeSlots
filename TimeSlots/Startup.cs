@@ -1,10 +1,6 @@
-﻿using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.FileProviders;
+﻿using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using TimeSlots.DataBase;
-using TimeSlots.Mapping;
 
 namespace TimeSlots
 {

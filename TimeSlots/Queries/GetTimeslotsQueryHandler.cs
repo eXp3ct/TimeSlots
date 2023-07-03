@@ -69,7 +69,6 @@ namespace TimeSlots.Queries
 					}
 					else
 					{
-						//currentTime = new DateTime(day.Year, day.Month, day.Day, timeslot.End.Hour, timeslot.End.Minute, timeslot.End.Second);
 						currentTime = day.FromTime(TimeOnly.FromTimeSpan(timeslot.End.TimeOfDay));
 						continue;
 					}
