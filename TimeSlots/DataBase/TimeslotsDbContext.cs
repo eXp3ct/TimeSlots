@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TimeSlots.DataBase.Seed;
 using TimeSlots.Model;
 
 namespace TimeSlots.DataBase
@@ -12,5 +13,12 @@ namespace TimeSlots.DataBase
         public TimeslotsDbContext(DbContextOptions<TimeslotsDbContext> options) : base(options)
         {
         }
-    }
+
+		protected override void OnModelCreating(ModelBuilder modelBuilder)
+		{
+			base.OnModelCreating(modelBuilder);
+
+			SeedDatabase.Seed(modelBuilder);
+		}
+	}
 }

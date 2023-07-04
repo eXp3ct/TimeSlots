@@ -5,5 +5,7 @@
 		public Guid Id { get; set; }
 		public int Number { get; set; }
 		public Guid PlatformId { get; set; }
+
+		public virtual List<Timeslot> Timeslots { get; set; }
 	}
 }
