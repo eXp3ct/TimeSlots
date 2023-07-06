@@ -1,4 +1,4 @@
-﻿@page "Test"
+﻿@page
 @model TimeSlots.Pages.TestModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
@@ -146,97 +146,6 @@
 			background: -moz-linear-gradient(top, #f2f2f2, #f0f0f0);
 		}
 </style>
-<script>
-	var selectedTimeslots = [];
-	document.addEventListener("DOMContentLoaded", function () {
-		var checkboxes = document.getElementsByClassName("timeslot-checkbox");
-		var reserveButton = document.getElementById("btnReserve");
-
-		function updateSelectedTimeslots() {
-			selectedTimeslots = Array.from(checkboxes).reduce(function (acc, checkbox) {
-				var date = checkbox.dataset.date;
-				var start = checkbox.dataset.start;
-				var end = checkbox.dataset.end;
-				var taskType = checkbox.dataset.taskType;
-
-				if (checkbox.checked) {
-					acc.push({ Date: date, Start: start, End: end, TaskType: taskType });
-				} else {
-					acc = acc.filter(function (slot) {
-						return slot.Date !== date || slot.Start !== start || slot.End !== end || slot.TaskType.toLowerCase() !== taskType.toLowerCase();
-					});
-				}
-				return acc;
-			}, []);
-		}
-		function parseDateTimeString(dateTimeString) {
-			// Разбиваем строку по пробелу, чтобы получить дату и время отдельно
-			var parts = dateTimeString.split(' ');
-			var dateString = parts[0];
-			var timeString = parts[1];
-
-			// Разбиваем строку с датой по точкам, чтобы получить день, месяц и год отдельно
-			var dateParts = dateString.split('.');
-			var day = parseInt(dateParts[0]);
-			var month = parseInt(dateParts[1]);
-			var year = parseInt(dateParts[2]);
-
-			// Разбиваем строку с временем по двоеточиям, чтобы получить часы и минуты отдельно
-			var timeParts = timeString.split(':');
-			var hours = parseInt(timeParts[0]);
-			var minutes = parseInt(timeParts[1]);
-
-			// Создаем объект Date с указанными значениями
-			var date = new Date(year, month - 1, day, hours, minutes, 0, 0);
-
-			var mskOffset = 3; // Сдвиг для Московского времени (в часах)
-			date.setHours(date.getHours() + mskOffset);
-
-			// Преобразуем объект Date в строку в формате "0001-01-01T00:00:00"
-			var isoString = date.toISOString();
-
-			return isoString;
-		}
-		async function reserveButtonClicked() {
-			updateSelectedTimeslots();
-
-			for (var i = 0; i < selectedTimeslots.length; i++) {
-				var timeslot = selectedTimeslots[i];
-				//console.log('before')
-				//console.log(timeslot)
-				timeslot.Date = parseDateTimeString(timeslot.Date)
-				timeslot.Start = parseDateTimeString(timeslot.Start)
-				timeslot.End = parseDateTimeString(timeslot.End)
-				console.log('after')
-				console.log(timeslot)
-				try {
-					// Отправляем каждый выбранный таймслот отдельно на сервер
-					var response = await fetch("/settimeslots", {
-						method: "POST",
-						headers: {
-							"Content-Type": "application/json"
-						},
-						body: JSON.stringify(timeslot)
-					});
-
-					if (response.ok) {
-						console.log("Таймслот успешно забронирован!");
-					} else {
-						console.error("Ошибка при отправке таймслота на сервер.");
-					}
-				} catch (error) {
-					console.error("Ошибка при выполнении запроса:", error);
-				}
-			}
-		}
-
-		for (var i = 0; i < checkboxes.length; i++) {
-			checkboxes[i].addEventListener("click", updateSelectedTimeslots);
-		}
-
-		reserveButton.addEventListener("click", reserveButtonClicked);
-	});
-</script>
 <div class="container">
 	<form method="post" asp-antiforgery="true">
 		<p>
@@ -283,17 +192,15 @@
 									<td>
 										<input type="checkbox"
 											   class="timeslot-checkbox"
-											   data-date="@timeslot.Date"
-											   data-start="@timeslot.Start"
-											   data-end="@timeslot.End"
-											   data-taskType="@((int)timeslot.TaskType))" />
+											   name="SelectedTimeslotIds"
+											   value="@timeslot.Id" />
 									</td>
 								</tr>
 							}
 						</tbody>
 					</table>
 				}
-				<button type="button" id="btnReserve" style="grid-column: 2;">Забронировать</button>
+				<input type="submit" id="btnReserve" style="grid-column: 2;" asp-page="Test" asp-page-handler="Reserve" value="Забронировать" />
 			</form>
 		}
 		else
@@ -303,3 +210,4 @@
 	</div>
 </div>
 
+<script src="/_framework/aspnetcore-browser-refresh.js"></script>

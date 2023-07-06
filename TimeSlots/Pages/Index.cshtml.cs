@@ -25,7 +25,7 @@ namespace TimeSlots.Pages
             await Refresh();
         }
 
-        public async Task OnPostClearTimeslots()
+        public async Task<IActionResult> OnPostClearTimeslots()
         {
             if (await _context.Timeslots.CountAsync() > 0)
             {
@@ -34,7 +34,7 @@ namespace TimeSlots.Pages
                 await Refresh();
             }
 
-            RedirectToPage("/Index");
+            return RedirectToPage();
         }
 
         private async Task Refresh()
