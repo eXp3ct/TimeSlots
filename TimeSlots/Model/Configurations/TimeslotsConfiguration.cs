@@ -10,7 +10,7 @@ namespace TimeSlots.Model.Configurations
 			builder.HasKey(x => x.Id);
 			builder.Property(x => x.From).HasMaxLength(15);
 			builder.Property(x => x.To).HasMaxLength(15);
-			builder.HasOne<Gate>(x => x.Gate)
+			builder.HasOne<Gate>()
 				.WithMany(g => g.Timeslots)
 				.HasForeignKey(x => x.GateId);
 		}

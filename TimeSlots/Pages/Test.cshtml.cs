@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Newtonsoft.Json;
 using System.Text;
 using TimeSlots.Model;
+using TimeSlots.Model.Enums;
 using TimeSlots.Queries;
 
 namespace TimeSlots.Pages
@@ -11,6 +12,7 @@ namespace TimeSlots.Pages
 	{
 		[BindProperty] public string Date { get; set; }
 		[BindProperty] public int Pallets { get; set; }
+		[BindProperty] public TaskType TaskType { get; set; }
 
 		public Dictionary<DateTime, List<TimeslotDto>> Timeslots { get; set; } = new();
 
@@ -20,7 +22,7 @@ namespace TimeSlots.Pages
 
 		public async Task OnPost()
 		{
-			var query = new GetTimeslotsQuery(DateTime.Parse(Date), Pallets);
+			var query = new GetTimeslotsQuery(DateTime.Parse(Date), Pallets, TaskType);
 			using var client = new HttpClient();
 			var requestBody = JsonConvert.SerializeObject(query);
 

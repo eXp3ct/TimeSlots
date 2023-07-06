@@ -1,5 +1,6 @@
-﻿@page
+﻿@page "Index"
 @model TimeSlots.Pages.IndexModel
+@addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 @{
 	ViewBag.Title = "Timeslots";
 }
@@ -122,7 +123,6 @@
 			background: -moz-linear-gradient(top, #f2f2f2, #f0f0f0);
 		}
 </style>
-
 <div class="container">
 	<h1>Platforms</h1>
 	<table>
@@ -135,12 +135,25 @@
 			</tr>
 		</thead>
 		<tbody>
-			@foreach (var platform in _context.Platforms)
+			@foreach (var platform in Model.Platforms)
 			{
 				<tr>
 					<td>@platform.Id</td>
 					<td>@platform.Name</td>
-					<td>@platform.Gates</td>
+					<td>
+						@foreach(var gate in platform.Gates)
+						{
+							@gate.Id
+							<br/>
+						}
+					</td>
+					<td>
+						@foreach(var company in platform.Companies)
+						{
+							@company.Id
+							<br />
+						}
+					</td>
 				</tr>
 			}
 		</tbody>
@@ -157,18 +170,103 @@
 			</tr>
 		</thead>
 		<tbody>
-			@foreach(var gate in _context.Gates)
+			@foreach(var gate in Model.Gates)
 			{
 				<tr>
 					<td>@gate.Id</td>
 					<td>@gate.Number</td>
 					<td>@gate.PlatformId</td>
+					<td>
+						@foreach(var timeslot in gate.Timeslots)
+						{
+							@timeslot.Id
+							<br />
+						}
+					</td>
+					<td>
+						@foreach(var schedule in gate.GateSchedules)
+						{
+							@schedule.Id
+							<br />
+						}
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
+	<h1>GatesSchedules</h1>
+	<table>
+		<thead>
+			<tr>
+				<td>Id</td>
+				<td>DaysOfWeekString</td>
+				<td>DaysOfWeek</td>
+				<td>From</td>
+				<td>To</td>
+				<td>GateId</td>
+				<td>CompanyId</td>
+				<td>TaskTypesString</td>
+				<td>TaskTypes</td>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var schedule in Model.GatesSchedules)
+			{
+				<tr>
+					<td>@schedule.Id</td>
+					<td>@schedule.DaysOfWeekString</td>
+					<td>
+						@foreach (var day in schedule.DaysOfWeek)
+						{
+							@day.ToString()
+							<br />
+						}
+					</td>
+					<td>@schedule.From</td>
+					<td>@schedule.To</td>
+					<td>@schedule.GateId</td>
+					<td>@schedule.CompanyId</td>
+					<td>@schedule.TaskTypesString</td>
+					<td>
+						@foreach(var task in schedule.TaskTypes)
+						{
+							@task.ToString()
+							<br />
+						}
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
+	<h1>Companies</h1>
+	<table>
+		<thead>
+			<tr>
+				@foreach (var name in typeof(Company).GetProperties().Select(prop => prop.Name))
+				{
+					<th>@name</th>
+				}
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var company in Model.Companies)
+			{
+				<tr>
+					<td>@company.Id</td>
+					<td>@company.Name</td>
+					<td>@company.PlatformId</td>
+					<td>@company.GateSchedule.Id</td>
 				</tr>
 			}
 		</tbody>
 	</table>
 
 	<h1>Timeslots</h1>
+	<form method="post" asp-page="Index" >
+		<button type="submit" asp-page-handler="ClearTimeslots">Clear</button>
+	</form>
     <table class="table">
         <thead>
             <tr>
@@ -179,16 +277,20 @@
             </tr>
         </thead>
         <tbody>
-			@foreach (var timeslot in _context.Timeslots)
+			@if(Model.Timeslots.Count() > 0)
 			{
-				<tr>
-					<td>@timeslot.Id</td>
-					<td>@timeslot.Date</td>
-					<td>@timeslot.From</td>
-					<td>@timeslot.To</td>
-					<td>@timeslot.GateId</td>
-					<td>@timeslot.UserId</td>
-				</tr>
+				foreach (var timeslot in Model.Timeslots)
+				{
+					<tr>
+						<td>@timeslot.Id</td>
+						<td>@timeslot.Date</td>
+						<td>@timeslot.From</td>
+						<td>@timeslot.To</td>
+						<td>@timeslot.GateId</td>
+						<td>@timeslot.UserId</td>
+						<td>@timeslot.TaskType</td>
+					</tr>
+				}
 			}
         </tbody>
     </table>

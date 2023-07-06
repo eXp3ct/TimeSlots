@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TimeSlots.DataBase;
 
@@ -10,9 +11,11 @@ using TimeSlots.DataBase;
 namespace TimeSlots.Migrations
 {
     [DbContext(typeof(TimeslotsDbContext))]
-    partial class TimeslotsDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230706142528_EntityTimeslotPropertyAdded")]
+    partial class EntityTimeslotPropertyAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "7.0.8");
@@ -39,9 +42,9 @@ namespace TimeSlots.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("61ab4269-2957-4fbb-b56a-ec18610fa77a"),
+                            Id = new Guid("0cea26e2-bfa5-48d9-9ac3-69f5b697f43f"),
                             Name = "Company A",
-                            PlatformId = new Guid("cf464a7a-7804-45c7-89bf-019855e3da8a")
+                            PlatformId = new Guid("6753ddab-c262-4528-ace6-c6471d20aef6")
                         });
                 });
 
@@ -66,21 +69,21 @@ namespace TimeSlots.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("594fabaa-65ca-4940-834f-9d31ad4b4d0d"),
-                            Number = 17,
-                            PlatformId = new Guid("cf464a7a-7804-45c7-89bf-019855e3da8a")
+                            Id = new Guid("aed76816-a08d-486f-9f22-f671eca2767f"),
+                            Number = 3,
+                            PlatformId = new Guid("6753ddab-c262-4528-ace6-c6471d20aef6")
                         },
                         new
                         {
-                            Id = new Guid("e755977d-efa1-412e-a581-ac9a95bc494f"),
-                            Number = 1,
-                            PlatformId = new Guid("cf464a7a-7804-45c7-89bf-019855e3da8a")
+                            Id = new Guid("9ac7306d-1979-4ade-abaa-7b157702fdca"),
+                            Number = 13,
+                            PlatformId = new Guid("6753ddab-c262-4528-ace6-c6471d20aef6")
                         },
                         new
                         {
-                            Id = new Guid("dd96e026-686c-4008-b035-d4220f6e30ac"),
-                            Number = 9,
-                            PlatformId = new Guid("cf464a7a-7804-45c7-89bf-019855e3da8a")
+                            Id = new Guid("cb7d29f1-6307-4b79-aba7-ad74d5798004"),
+                            Number = 12,
+                            PlatformId = new Guid("6753ddab-c262-4528-ace6-c6471d20aef6")
                         });
                 });
 
@@ -97,7 +100,8 @@ namespace TimeSlots.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeSpan>("From")
+                    b.Property<string>("From")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.Property<Guid>("GateId")
@@ -107,7 +111,8 @@ namespace TimeSlots.Migrations
                         .IsRequired()
                         .HasColumnType("TEXT");
 
-                    b.Property<TimeSpan>("To")
+                    b.Property<string>("To")
+                        .IsRequired()
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
@@ -122,22 +127,13 @@ namespace TimeSlots.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("fb05f4b5-23ca-4ba7-a05b-caaf3efb2129"),
-                            CompanyId = new Guid("61ab4269-2957-4fbb-b56a-ec18610fa77a"),
+                            Id = new Guid("7bb2b061-fd79-4622-a7a3-ce97a3e4a576"),
+                            CompanyId = new Guid("0cea26e2-bfa5-48d9-9ac3-69f5b697f43f"),
                             DaysOfWeekString = "Sunday,Monday,Tuesday",
-                            From = new TimeSpan(0, 12, 0, 0, 0),
-                            GateId = new Guid("594fabaa-65ca-4940-834f-9d31ad4b4d0d"),
+                            From = "12:00:00",
+                            GateId = new Guid("aed76816-a08d-486f-9f22-f671eca2767f"),
                             TaskTypesString = "Loading,Unloading,Transfer",
-                            To = new TimeSpan(0, 18, 0, 0, 0)
-                        },
-                        new
-                        {
-                            Id = new Guid("cb211e29-e305-4d87-8d12-ca346a290cab"),
-                            DaysOfWeekString = "Wednesday,Thursday",
-                            From = new TimeSpan(0, 9, 30, 0, 0),
-                            GateId = new Guid("dd96e026-686c-4008-b035-d4220f6e30ac"),
-                            TaskTypesString = "Loading",
-                            To = new TimeSpan(0, 15, 0, 0, 0)
+                            To = "18:00:00"
                         });
                 });
 
@@ -158,7 +154,7 @@ namespace TimeSlots.Migrations
                     b.HasData(
                         new
                         {
-                            Id = new Guid("cf464a7a-7804-45c7-89bf-019855e3da8a"),
+                            Id = new Guid("6753ddab-c262-4528-ace6-c6471d20aef6"),
                             Name = "FTC-1"
                         });
                 });

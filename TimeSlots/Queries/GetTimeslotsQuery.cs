@@ -1,6 +1,7 @@
 ﻿using MediatR;
 using TimeSlots.DataBase;
 using TimeSlots.Model;
+using TimeSlots.Model.Enums;
 
 namespace TimeSlots.Queries
 {
@@ -8,14 +9,16 @@ namespace TimeSlots.Queries
     {
         public DateTime Date { get; set; }
 		public int Pallets { get; set; }
+        public TaskType TaskType { get; set; }
 
-		public GetTimeslotsQuery(DateTime date, int pallets)
+		public GetTimeslotsQuery(DateTime date, int pallets, TaskType taskType)
 		{
 			Date = date;
 			Pallets = pallets;
+			TaskType = taskType;
 		}
 
-        public GetTimeslotsQuery()
+		public GetTimeslotsQuery()
         {
             
         }

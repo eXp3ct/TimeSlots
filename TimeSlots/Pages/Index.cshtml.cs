@@ -8,18 +8,52 @@ namespace TimeSlots.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly ILogger<IndexModel> logger;
-        private readonly TimeslotsDbContext context;
+        private readonly TimeslotsDbContext _context;
+        public IEnumerable<Platform>? Platforms { get; set; }
+        public IEnumerable<GateSchedule>? GatesSchedules { get; set; }
+        public IEnumerable<Gate>? Gates { get; set; } 
+        public IEnumerable<Company>? Companies { get; set; }
+        public IEnumerable<Timeslot>? Timeslots { get; set; }
 
-		public IndexModel(ILogger<IndexModel> logger, TimeslotsDbContext context)
+		public IndexModel(TimeslotsDbContext context)
 		{
-			this.logger = logger;
-			this.context = context;
+			_context = context;
 		}
 
 		public async Task OnGetAsync()
         {
-            
+            await Refresh();
         }
+
+        public async Task OnPostClearTimeslots()
+        {
+            if (await _context.Timeslots.CountAsync() > 0)
+            {
+                await _context.Timeslots?.ExecuteDeleteAsync();
+                await _context.SaveChangesAsync();
+                await Refresh();
+            }
+
+            RedirectToPage("/Index");
+        }
+
+        private async Task Refresh()
+        {
+			Platforms = await _context.Platforms
+				.Include(x => x.Companies)
+				.Include(x => x.Gates)
+				.ToListAsync();
+			GatesSchedules = await _context.GateSchedules
+				.ToListAsync();
+			Gates = await _context.Gates
+				.Include(x => x.Timeslots)
+				.Include(x => x.GateSchedules)
+				.ToListAsync();
+			Companies = await _context.Companies
+				.Include(x => x.GateSchedule)
+				.ToListAsync();
+			Timeslots = await _context.Timeslots
+				.ToListAsync();
+		}
     }
 }
