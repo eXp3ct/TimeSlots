@@ -20,7 +20,9 @@ namespace TimeSlots.Mapping
 				.ForMember(timeslot => timeslot.GateId,
 					opt => opt.Ignore())
 				.ForMember(timeslot => timeslot.UserId,
-					opt => opt.MapFrom(query => Guid.NewGuid()));
+					opt => opt.MapFrom(query => Guid.NewGuid()))
+				.ForMember(timeslot => timeslot.TaskType,
+					opt => opt.MapFrom(query => query.TaskType));
 		}
     }
 }

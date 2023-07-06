@@ -1,6 +1,5 @@
 ﻿using MediatR;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 using TimeSlots.DataBase;
 using TimeSlots.Extensions;
 using TimeSlots.Model;
@@ -22,83 +21,115 @@ namespace TimeSlots.Queries
 
 		public async Task<IEnumerable<TimeslotDto>> Handle(GetTimeslotsQuery request, CancellationToken cancellationToken)
 		{
-			var dto = new List<TimeslotDto>();
-			var daysQueue = new Queue<DateTime>(3);
-			daysQueue.Enqueue(request.Date.AddDays(-1));
-			daysQueue.Enqueue(request.Date);
-			daysQueue.Enqueue(request.Date.AddDays(1));
+			var timeslots = new List<TimeslotDto>();
+			var nearbyDates = await EnqueueNearbyDates(request.Date);
 
-			var minutesNeeded = request.Pallets * PalletTime;
-			var wrapped = default(bool);
-			var wrappedTime = default(DateTime);
-			while (daysQueue.Any())
+			var minutesNeeded = GetNeededMinutes(request.Pallets);
+			var isWrapped = false;
+			var lastEndTime = DateTime.MinValue;
+			var schedules = await _context.GateSchedules.ToListAsync(cancellationToken);
+			foreach(var day in  nearbyDates)
 			{
-				var day = daysQueue.Dequeue();
-				DateTime currentTime;
-				if (wrapped)
-					currentTime = wrappedTime;
-				else
-					currentTime = day.FromTime(_gateStart); 
-
+				if (!schedules.Any(s => s.DaysOfWeek.Contains(day.Date.DayOfWeek) && s.TaskTypes.Contains(request.TaskType)))
+					continue;
+				var currentTime = isWrapped ? lastEndTime : day.FromTime(_gateStart);
 				var endTime = day.FromTime(_gateEnd);
-
-				while (currentTime <= endTime)
+				
+				while(currentTime <= endTime)
 				{
-					var roundedMinutes = (int)Math.Ceiling(minutesNeeded / (float)TimeParity) * TimeParity;
 					var timeslot = new TimeslotDto(day)
 					{
 						Start = currentTime,
-						End = currentTime.AddMinutes(roundedMinutes)
-					};					
+						End = currentTime.AddMinutes(minutesNeeded),
+						TaskType = request.TaskType
+					};
 
 					if(timeslot.End >= endTime)
 					{
-						wrapped = true;
-						wrappedTime = timeslot.End;
+						isWrapped = true;
+						lastEndTime = timeslot.End;
 					}
 					else
 					{
-						wrapped = false;
+						isWrapped = false;
 					}
 
-					var overlaps = await CheckForOverlaps(timeslot); // Асинхронная проверка на перекрытия
-
-					if (!overlaps)
+					var overlapingTimeslot = await CheckForOverlaps(timeslot);
+					if (overlapingTimeslot == null)
 					{
-						dto.Add(timeslot);
+						timeslots.Add(timeslot);
 					}
 					else
 					{
-						currentTime = day.FromTime(TimeOnly.FromTimeSpan(timeslot.End.TimeOfDay));
+						currentTime = overlapingTimeslot.To;
 						continue;
 					}
 
-					currentTime = currentTime.AddMinutes(roundedMinutes);
+					currentTime = timeslot.End;
 				}
 			}
 
-			return dto;
+			return timeslots;
 		}
 
-		private async Task<bool> CheckForOverlaps(TimeslotDto timeslot)
+
+		private async Task<Timeslot?> CheckForOverlaps(TimeslotDto timeslot)
 		{
-			var existingTimeslots = await _context.Timeslots
-				.Where(t => t.Date.Date == timeslot.Date.Date)
+			
+			var gateSchedules = await _context.GateSchedules.ToListAsync();
+			var gateIds = gateSchedules
+				.Where(s => s.TaskTypes.Contains(timeslot.TaskType) && s.DaysOfWeek.Contains(timeslot.Date.DayOfWeek))
+				.Select(g => g.GateId).ToList();
+
+			var gates = await _context.Gates
+				.Include(x => x.Timeslots)
+				.Include(x => x.GateSchedules)
+				.Where(g => gateIds.Contains(g.Id))
 				.ToListAsync();
 
-			foreach (var existingTimeslot in existingTimeslots)
+			var existingTimeslots = await _context.Timeslots
+				.Where(t => t.Date.Date == timeslot.Date.Date || t.Date <= timeslot.Date)
+				.ToListAsync();
+			var hasOverlap = false;
+			Timeslot? dto = new();
+
+			foreach(var gate in gates)
 			{
-				var existingStart = TimeSpan.Parse(existingTimeslot.From);
-				var existingEnd = TimeSpan.Parse(existingTimeslot.To);
-				if (timeslot.Start.TimeOfDay < existingEnd && existingStart < timeslot.End.TimeOfDay)
+				var gateOverlap = false;
+				foreach(var existingTimeslot in gate.Timeslots)
 				{
-					return true;
+					if ((timeslot.Start < existingTimeslot.To && existingTimeslot.From < timeslot.End) || // Пересечение временных отрезков
+					(timeslot.Start == existingTimeslot.To && existingTimeslot.From == timeslot.End) || // Одинаковые временные отрезки
+					(timeslot.Start <= existingTimeslot.From && timeslot.End >= existingTimeslot.To) || // Один временной отрезок полностью включает другой
+					(timeslot.Start >= existingTimeslot.From && timeslot.End <= existingTimeslot.To)) // Один временной отрезок полностью включен в другой
+					{
+						gateOverlap = true;
+						dto = existingTimeslot;
+						break;
+					}
 				}
+				if (!gateOverlap)
+					return null;
+				hasOverlap = gateOverlap;
 			}
-			
-			return false;
+
+			return hasOverlap ? dto : null;
 		}
 
-		
+		private async Task<IEnumerable<DateTime>> EnqueueNearbyDates(DateTime date)
+		{
+			return await Task.FromResult(new List<DateTime>()
+			{
+				date.AddDays(-1),
+				date,
+				date.AddDays(1)
+			});
+		}
+
+		private int GetNeededMinutes(int pallets)
+		{
+			var minutesNeeded = pallets * PalletTime;
+			return (int)Math.Ceiling(minutesNeeded / (float)TimeParity) * TimeParity;
+		}
 	}
 }

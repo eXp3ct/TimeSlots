@@ -21,8 +21,11 @@ namespace TimeSlots.Queries
 		public async Task Handle(SetTimeslotQuery request, CancellationToken cancellationToken)
 		{
 			var timeslot = _mapper.Map<Timeslot>(request);
-			timeslot.GateId = await GetFreeGateId(request, cancellationToken);
-
+			var gateId = await GetFreeGateId(request, cancellationToken);
+			if (gateId != Guid.Empty)
+				timeslot.GateId = gateId;
+			else
+				return;
 			await _context.Timeslots.AddAsync(timeslot, cancellationToken);
 			await _context.SaveChangesAsync(cancellationToken);
 		}
@@ -30,13 +33,15 @@ namespace TimeSlots.Queries
 		private async Task<Guid> GetFreeGateId(SetTimeslotQuery request, CancellationToken cancellationToken)
 		{
 			var gates = await _context.Gates.ToListAsync(cancellationToken);
-
+			var gateSchedules = await _context.GateSchedules.ToListAsync();
+			var gateIds = gateSchedules.Where(s => s.TaskTypes.Contains(request.TaskType) && s.DaysOfWeek.Contains(request.Date.DayOfWeek)).Select(g => g.GateId).ToList();
+			gates = gates.Where(g => gateIds.Contains(g.Id)).ToList();
 			var timeslots = await _context.Timeslots
 				.Where(t => t.Date.Date == request.Date.Date)
 				.ToListAsync(cancellationToken);
 
 			var occupiedGateIds = timeslots
-				.Where(t => TimeSpan.Parse(t.From) <= TimeSpan.Parse(request.End) && TimeSpan.Parse(t.To) >= TimeSpan.Parse(request.Start))
+				.Where(t => t.From < request.End && t.To > request.Start)
 				.Select(t => t.GateId)
 				.ToList();
 

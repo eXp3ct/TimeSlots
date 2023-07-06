@@ -37,5 +37,6 @@ namespace TimeSlots.Controllers
 
 			return Ok(new AppResultWithData<SetTimeslotQuery>("Successfuly reserved timeslot", false, query));
 		}
+
 	}
 }
