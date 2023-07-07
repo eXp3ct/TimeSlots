@@ -11,8 +11,8 @@ namespace TimeSlots.Queries
 		private const int PalletTime = 5;
 		private const int TimeParity = 30;
 		private readonly TimeslotsDbContext _context;
-		private readonly TimeOnly _gateStart = new(0, 0, 0);
-		private readonly TimeOnly _gateEnd = new(23, 30, 0);
+		private TimeOnly _gateStart = new(0, 0, 0);
+		private TimeOnly _gateEnd = new(23, 30, 0);
 
 		public GetTimeslotsQueryHandler(TimeslotsDbContext context)
 		{
@@ -30,8 +30,18 @@ namespace TimeSlots.Queries
 			var schedules = await _context.GateSchedules.ToListAsync(cancellationToken);
 			foreach(var day in  nearbyDates)
 			{
+				var scheduleExist = false;
 				if (!schedules.Any(s => s.DaysOfWeek.Contains(day.Date.DayOfWeek) && s.TaskTypes.Contains(request.TaskType)))
+				{
+					scheduleExist = false;
 					continue;
+				}
+				else{
+					scheduleExist = true;
+					var schedule = schedules.Where(s => s.DaysOfWeek.Contains(day.Date.DayOfWeek) && s.TaskTypes.Contains(request.TaskType)).FirstOrDefault();
+					_gateStart = schedule.From.ToTimeOnly();
+					_gateEnd = schedule.To.ToTimeOnly();
+				}
 				var currentTime = isWrapped ? lastEndTime : day.FromTime(_gateStart);
 				var endTime = day.FromTime(_gateEnd);
 				
@@ -43,11 +53,17 @@ namespace TimeSlots.Queries
 						End = currentTime.AddMinutes(minutesNeeded),
 						TaskType = request.TaskType
 					};
-
-					if(timeslot.End >= endTime)
+					if (timeslot.End >= endTime)
 					{
-						isWrapped = true;
-						lastEndTime = timeslot.End;
+						if (!scheduleExist)
+						{
+							isWrapped = true;
+							lastEndTime = timeslot.End; 
+						}
+						else
+						{
+							break;
+						}
 					}
 					else
 					{

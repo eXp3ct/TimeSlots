@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using TimeSlots.DataBase;
 using TimeSlots.Model;
 using TimeSlots.Queries;
-using TimeSlots.Exceptions;
 namespace TimeSlots.Controllers
 {
 	[Route("[controller]")]
