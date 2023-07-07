@@ -10,12 +10,14 @@ namespace TimeSlots.Queries
         public DateTime Date { get; set; }
 		public int Pallets { get; set; }
         public TaskType TaskType { get; set; }
+		public Guid? CompanyId { get; set; }
 
-		public GetTimeslotsQuery(DateTime date, int pallets, TaskType taskType)
+		public GetTimeslotsQuery(DateTime date, int pallets, TaskType taskType, Guid companyId)
 		{
 			Date = date;
 			Pallets = pallets;
 			TaskType = taskType;
+			CompanyId = companyId;
 		}
 
 		public GetTimeslotsQuery()

@@ -15,7 +15,7 @@ namespace TimeSlots.Pages
 		[BindProperty] public int Pallets { get; set; }
 		[BindProperty] public TaskType TaskType { get; set; }
 
-		[BindProperty] public List<Guid> SelectedTimeslotIds { get; set; } = new();
+		[BindProperty] public List<Guid> SelectedTimeslotIds { get; set; }
 
 		public Dictionary<DateTime, List<TimeslotDto>> Timeslots { get; set; } = new();
 		private readonly ILogger<TestModel> _logger;
@@ -32,10 +32,12 @@ namespace TimeSlots.Pages
 
 		public async Task OnPost()
 		{
-			var query = new GetTimeslotsQuery(DateTime.Parse(Date), Pallets, TaskType);
+			var companyId = Guid.Parse("f13e9549-9b98-46fb-b696-a990432e2710");
+			var query = new GetTimeslotsQuery(DateTime.Parse(Date), Pallets, TaskType, companyId);
 			
 			var dtos = await GetTimeslotDtosAsync(query);
-			Response.Cookies.Append("Timeslots", JsonConvert.SerializeObject(dtos));
+			//Response.Cookies.Append("Timeslots", JsonConvert.SerializeObject(dtos));
+			HttpContext.Session.SetString("Timeslots", JsonConvert.SerializeObject(dtos));
 			foreach (var day in dtos.Select(d => d.Date).Distinct())
 			{
 				Timeslots.Add(day, dtos.Where(d => d.Date == day).ToList());
@@ -66,9 +68,10 @@ namespace TimeSlots.Pages
 
 		public async Task<IActionResult> OnPostReserveAsync()
 		{
-			if(Request.Cookies.TryGetValue("Timeslots", out string timeslotsData))
+			if(HttpContext.Session.TryGetValue("Timeslots", out byte[] timeslotsData))
 			{
-				var allTimeslots = JsonConvert.DeserializeObject<List<TimeslotDto>>(timeslotsData);
+				var timeslotsString = Encoding.UTF8.GetString(timeslotsData);
+				var allTimeslots = JsonConvert.DeserializeObject<List<TimeslotDto>>(timeslotsString);
 				var dtos = allTimeslots.Where(d => SelectedTimeslotIds.Contains(d.Id)).ToList();
 
 				using var client = new HttpClient();

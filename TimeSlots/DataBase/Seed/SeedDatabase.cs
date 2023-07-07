@@ -62,10 +62,23 @@ namespace TimeSlots.DataBase.Seed
 				TaskTypes = new List<TaskType> { TaskType.Loading}
 			};
 
+			var platformFavorite = new PlatformFavorite()
+			{
+				Id = Guid.NewGuid(),
+				PlatformId = platform.Id,
+				CompanyId = company.Id,
+				MaxTaskCount = random.Next(1, 11),
+				DaysOfWeek = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday },
+				From = TimeSpan.Parse("12:00:00"),
+				To = TimeSpan.Parse("18:00:00"),
+				TaskTypes = new List<TaskType> { TaskType.Unloading}
+			};
+
 			builder.Entity<Platform>().HasData(platform);
 			builder.Entity<Gate>().HasData(gate1, gate2, gate3);
 			builder.Entity<Company>().HasData(company);
 			builder.Entity<GateSchedule>().HasData(gateSchedule, gateSchedule1);
+			builder.Entity<PlatformFavorite>().HasData(platformFavorite);
 		}
 	}
 }

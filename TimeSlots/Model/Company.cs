@@ -8,5 +8,6 @@ namespace TimeSlots.Model
 		public string Name { get; set; }
 		public Guid PlatformId { get; set; }
 		public virtual GateSchedule GateSchedule { get; set; }
+		public virtual List<PlatformFavorite> PlatformFavorites { get; set; }
 	}
 }
