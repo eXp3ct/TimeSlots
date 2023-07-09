@@ -12,7 +12,7 @@ namespace TimeSlots.Queries
         public TaskType TaskType { get; set; }
 		public Guid? CompanyId { get; set; }
 
-		public GetTimeslotsQuery(DateTime date, int pallets, TaskType taskType, Guid companyId)
+		public GetTimeslotsQuery(DateTime date, int pallets, TaskType taskType, Guid? companyId)
 		{
 			Date = date;
 			Pallets = pallets;

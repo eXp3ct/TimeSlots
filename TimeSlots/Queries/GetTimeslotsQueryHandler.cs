@@ -1,6 +1,7 @@
 ﻿using Humanizer;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using TimeSlots.DataBase;
 using TimeSlots.Extensions;
 using TimeSlots.Model;
@@ -22,11 +23,12 @@ namespace TimeSlots.Queries
 
 		public async Task<IEnumerable<TimeslotDto>> Handle(GetTimeslotsQuery request, CancellationToken cancellationToken)
 		{
-			Company? company = await _context.Companies.Where(c => c.Id == request.CompanyId).FirstOrDefaultAsync(cancellationToken);
-			List<PlatformFavorite>? platformFavorites = await _context.PlatformFavorites.ToListAsync(cancellationToken);
-			if(company != null)
+			Company? company = await _context.Companies.Where(c => c.Id == request.CompanyId).FirstOrDefaultAsync(cancellationToken); // берем компанию
+			List<PlatformFavorite>? platformFavorites = null;
+			if(company != null) // если найдена компания, то берем к ней расписания
 			{
-				platformFavorites = platformFavorites.Where(p => p.CompanyId == company.Id).ToList();
+				platformFavorites = await _context.PlatformFavorites
+					.Where(p => p.CompanyId == company.Id).ToListAsync(cancellationToken);
 			}
 			var timeslots = new List<TimeslotDto>();
 			var nearbyDates = await EnqueueNearbyDates(request.Date);
@@ -34,19 +36,21 @@ namespace TimeSlots.Queries
 			var minutesNeeded = GetNeededMinutes(request.Pallets);
 			var isWrapped = false;
 			var lastEndTime = DateTime.MinValue;
-			var schedules = await _context.GateSchedules.ToListAsync(cancellationToken);
+			var schedules = await _context.GateSchedules.ToListAsync(cancellationToken); // все расписания
 			foreach(var day in  nearbyDates)
 			{
 				var scheduleExist = false;
 				var platformFavoriteExist = false;
-				if (platformFavorites == null)
+
+				bool predicateGateSchedule(GateSchedule s) => s.DaysOfWeek.Contains(day.Date.DayOfWeek) && s.TaskTypes.Contains(request.TaskType);
+				bool predicatePlatformFavorite(PlatformFavorite s) => s.DaysOfWeek.Contains(day.Date.DayOfWeek) && s.TaskTypes.Contains(request.TaskType);
+
+				if (platformFavorites == null || !platformFavorites.Any(predicatePlatformFavorite))
 				{
-					bool predicate(GateSchedule s) => s.DaysOfWeek.Contains(day.Date.DayOfWeek) && s.TaskTypes.Contains(request.TaskType);
-					
-					if (schedules.Any(predicate))
+					if (schedules.Any(predicateGateSchedule))
 					{
 						scheduleExist = true;
-						var schedule = schedules.Where(predicate).FirstOrDefault();
+						var schedule = schedules.Where(predicateGateSchedule).FirstOrDefault();
 						_gateStart = schedule.From.ToTimeOnly();
 						_gateEnd = schedule.To.ToTimeOnly();
 					}
@@ -55,27 +59,53 @@ namespace TimeSlots.Queries
 						scheduleExist = false;
 						_gateStart = new(0, 0, 0);
 						_gateEnd = new(23, 30, 0);
-					} 
+					}
 				}
 				else
 				{
-					bool predicate(PlatformFavorite p) => p.DaysOfWeek.Contains(day.Date.DayOfWeek) && p.TaskTypes.Contains(request.TaskType);
+					platformFavoriteExist = true;
+					var platformFavorite = platformFavorites.Where(predicatePlatformFavorite).FirstOrDefault();
 
-					if (platformFavorites.Any(predicate))
+					if (!await CheckForAvaliableTaskCount(request))
 					{
-						platformFavoriteExist = true;
-						var platformFavorite = platformFavorites.Where(predicate).FirstOrDefault();
-						_gateStart = platformFavorite.From.ToTimeOnly();
-						_gateEnd = platformFavorite.To.ToTimeOnly();
+						platformFavoriteExist = false;
+
+						if (schedules.Any(predicateGateSchedule))
+						{
+							scheduleExist = true;
+							var schedule = schedules.Where(predicateGateSchedule).FirstOrDefault();
+							_gateStart = schedule.From.ToTimeOnly();
+							_gateEnd = schedule.To.ToTimeOnly();
+						}
+						else
+						{
+							scheduleExist = false;
+							_gateStart = new(0, 0, 0);
+							_gateEnd = new(23, 30, 0);
+						}
 					}
 					else
 					{
-						platformFavoriteExist = false;
-						_gateStart = new(0, 0, 0);
-						_gateEnd = new(23, 30, 0);
+						_gateStart = platformFavorite.From.ToTimeOnly();
+						_gateEnd = platformFavorite.To.ToTimeOnly();
 					}
 				}
-				var currentTime = isWrapped ? lastEndTime : day.FromTime(_gateStart);
+				var currentTime = DateTime.MinValue;
+				if(isWrapped)
+				{
+                    if (scheduleExist || platformFavoriteExist)
+                    {
+						currentTime = day.FromTime(_gateStart);
+					}
+					else
+					{
+						currentTime = lastEndTime;
+					}
+                }
+				else
+				{
+					currentTime = day.FromTime(_gateStart);
+				}
 				var endTime = day.FromTime(_gateEnd);
 				
 				while(currentTime <= endTime)
@@ -85,7 +115,7 @@ namespace TimeSlots.Queries
 						Start = currentTime,
 						End = currentTime.AddMinutes(minutesNeeded),
 						TaskType = request.TaskType,
-						CompanyId = request.CompanyId == null ? Guid.Empty : request.CompanyId,
+						CompanyId = request.CompanyId == null ? Guid.Empty : request.CompanyId
 					}; 
 					if (timeslot.End >= endTime)
 					{
@@ -98,6 +128,7 @@ namespace TimeSlots.Queries
 							}
 							else
 							{
+								isWrapped = false;
 								break;
 							} 
 						}
@@ -254,12 +285,17 @@ namespace TimeSlots.Queries
 
 			var platform = await _context.Platforms
 				.Where(p => p.Id == company.PlatformId)
-				.Include(p => p.Gates)
 				.FirstOrDefaultAsync();
+
+			var gates = await _context.Gates
+				.Where(g => g.PlatformId == platform.Id)
+				.Include(g => g.Timeslots)
+				.ToListAsync();
+
 			var taskCount = 0;
 			foreach(var platformFavorite in platformFavorites)
 			{
-				foreach(var gate in platform.Gates)
+				foreach(var gate in gates)
 				{
 					foreach(var timeslot in gate.Timeslots)
 					{
@@ -276,5 +312,6 @@ namespace TimeSlots.Queries
 
 			return taskCount < maxTaskCount;
 		}
+
 	}
 }
