@@ -51,14 +51,14 @@ namespace TimeSlots.Queries
 					{
 						scheduleExist = true;
 						var schedule = schedules.Where(predicateGateSchedule).FirstOrDefault();
-						_gateStart = schedule.From.ToTimeOnly();
-						_gateEnd = schedule.To.ToTimeOnly();
+
+						SetGateTime(schedule.From.ToTimeOnly(), schedule.To.ToTimeOnly());
 					}
 					else
 					{
 						scheduleExist = false;
-						_gateStart = new(0, 0, 0);
-						_gateEnd = new(23, 30, 0);
+
+						SetGateTime(new TimeOnly(0, 0, 0), new TimeOnly(23, 30, 0));
 					}
 				}
 				else
@@ -74,20 +74,19 @@ namespace TimeSlots.Queries
 						{
 							scheduleExist = true;
 							var schedule = schedules.Where(predicateGateSchedule).FirstOrDefault();
-							_gateStart = schedule.From.ToTimeOnly();
-							_gateEnd = schedule.To.ToTimeOnly();
+
+							SetGateTime(schedule.From.ToTimeOnly(), schedule.To.ToTimeOnly());
 						}
 						else
 						{
 							scheduleExist = false;
-							_gateStart = new(0, 0, 0);
-							_gateEnd = new(23, 30, 0);
+
+							SetGateTime(new TimeOnly(0, 0, 0), new TimeOnly(23, 30, 0));
 						}
 					}
 					else
 					{
-						_gateStart = platformFavorite.From.ToTimeOnly();
-						_gateEnd = platformFavorite.To.ToTimeOnly();
+						SetGateTime(platformFavorite.From.ToTimeOnly(), platformFavorite.To.ToTimeOnly());
 					}
 				}
 				var currentTime = DateTime.MinValue;
@@ -311,6 +310,12 @@ namespace TimeSlots.Queries
 			}
 
 			return taskCount < maxTaskCount;
+		}
+
+		private void SetGateTime(TimeOnly start, TimeOnly end)
+		{
+			_gateStart = start;
+			_gateEnd = end;
 		}
 
 	}

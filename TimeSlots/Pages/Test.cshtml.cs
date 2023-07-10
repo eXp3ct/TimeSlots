@@ -33,7 +33,7 @@ namespace TimeSlots.Pages
 		public async Task OnPost()
 		{
 			var companyId = Guid.Parse("f13e9549-9b98-46fb-b696-a990432e2710");
-			var query = new GetTimeslotsQuery(DateTime.Parse(Date), Pallets, TaskType, companyId);
+			var query = new GetTimeslotsQuery(DateTime.Parse(Date), Pallets, TaskType, null);
 			
 			var dtos = await GetTimeslotDtosAsync(query);
 			//Response.Cookies.Append("Timeslots", JsonConvert.SerializeObject(dtos));
