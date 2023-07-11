@@ -19,6 +19,13 @@ namespace TimeSlots.Queries
 			_mapper = mapper;
 		}
 
+
+		/// <summary>
+		/// Обработчик бронирования таймслотов
+		/// </summary>
+		/// <param name="request"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns>Сохраняет <typeparamref name="Timeslot"/> в базу данных</returns>
 		public async Task Handle(SetTimeslotQuery request, CancellationToken cancellationToken)
 		{
 			var timeslot = _mapper.Map<Timeslot>(request);
@@ -31,6 +38,12 @@ namespace TimeSlots.Queries
 			await _context.SaveChangesAsync(cancellationToken);
 		}
 
+		/// <summary>
+		/// Получение <typeparamref name="Guid"/> свободного гейта по определенному времени и расписанию
+		/// </summary>
+		/// <param name="request"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns><typeparamref name="Guid"/> свободного гейта</returns>
 		private async Task<Guid> GetFreeGateId(SetTimeslotQuery request, CancellationToken cancellationToken)
 		{
 			List<Gate> gates;

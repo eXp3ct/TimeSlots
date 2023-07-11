@@ -21,9 +21,15 @@ namespace TimeSlots.Queries
 			_context = context;
 		}
 
+		/// <summary>
+		/// Обработчик получения список свободных таймслотов
+		/// </summary>
+		/// <param name="request"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns>Список свободных таймслотов</returns>
 		public async Task<IEnumerable<TimeslotDto>> Handle(GetTimeslotsQuery request, CancellationToken cancellationToken)
 		{
-			Company? company = await _context.Companies.Where(c => c.Id == request.CompanyId).FirstOrDefaultAsync(cancellationToken); // берем компанию
+			var company = await _context.Companies.Where(c => c.Id == request.CompanyId).FirstOrDefaultAsync(cancellationToken); // берем компанию
 			List<PlatformFavorite>? platformFavorites = null;
 			if(company != null) // если найдена компания, то берем к ней расписания
 			{
@@ -169,6 +175,11 @@ namespace TimeSlots.Queries
 			return timeslots;
 		}
 
+		/// <summary>
+		/// Поиск пересечений <typeparamref name="TimeslotDto"/> и уже забронированных таймслотов в БД
+		/// </summary>
+		/// <param name="timeslot">Возможный таймслот</param>
+		/// <returns>Занятый <typeparamref name="Timeslot"/> или <c>null</c></returns>
 		private async Task<Timeslot?> CheckForOverlaps(TimeslotDto timeslot)
 		{
 			List<Gate> gates;
@@ -251,6 +262,12 @@ namespace TimeSlots.Queries
 			return hasOverlap ? dto : null;
 		}
 
+		/// <summary>
+		/// Создание IEnumarable соседних дат
+		/// </summary>
+		/// <param name="date"></param>
+		/// <typeparap name="T"></typeparap>
+		/// <returns><typeparamref name="IEnumerable"/> соседних дат</returns>
 		private async Task<IEnumerable<DateTime>> EnqueueNearbyDates(DateTime date)
 		{
 			return await Task.FromResult(new List<DateTime>()
@@ -261,12 +278,24 @@ namespace TimeSlots.Queries
 			});
 		}
 
+
+		/// <summary>
+		/// Количество минут на разгрузку/загрузку количества <typeparamref name="pallets"/>
+		/// </summary>
+		/// <param name="pallets">Количество паллет</param>
+		/// <returns>Округленное количество минут</returns>
 		private int GetNeededMinutes(int pallets)
 		{
 			var minutesNeeded = pallets * PalletTime;
 			return (int)Math.Ceiling(minutesNeeded / (float)TimeParity) * TimeParity;
 		}
 
+
+		/// <summary>
+		/// Проверка на количество операция для компании
+		/// </summary>
+		/// <param name="query"></param>
+		/// <returns><c>true</c> - если есть свободные операции <c>false</c> - если нет</returns>
 		private async Task<bool> CheckForAvaliableTaskCount(GetTimeslotsQuery query)
 		{
 			bool predicate(PlatformFavorite s) => s.TaskTypes.Contains(query.TaskType) && s.DaysOfWeek.Contains(query.Date.DayOfWeek);
@@ -278,6 +307,7 @@ namespace TimeSlots.Queries
 
 			var company = await _context.Companies
 				.Where(c => c.Id == query.CompanyId)
+				.Include(c => c.PlatformFavorites)
 				.FirstOrDefaultAsync();
 
 			var platformFavorites = company.PlatformFavorites;
@@ -312,6 +342,11 @@ namespace TimeSlots.Queries
 			return taskCount < maxTaskCount;
 		}
 
+		/// <summary>
+		/// Установка времени гейтов
+		/// </summary>
+		/// <param name="start"></param>
+		/// <param name="end"></param>
 		private void SetGateTime(TimeOnly start, TimeOnly end)
 		{
 			_gateStart = start;

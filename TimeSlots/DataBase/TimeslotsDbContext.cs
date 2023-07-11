@@ -17,6 +17,11 @@ namespace TimeSlots.DataBase
         {
         }
 
+
+		/// <summary>
+		/// Первичное заполнение базы данных
+		/// </summary>
+		/// <param name="modelBuilder"></param>
 		protected override void OnModelCreating(ModelBuilder modelBuilder)
 		{
 			base.OnModelCreating(modelBuilder);

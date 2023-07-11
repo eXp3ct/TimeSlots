@@ -6,6 +6,17 @@ namespace TimeSlots.DataBase.Seed
 {
 	public class SeedDatabase
 	{
+
+		/// <summary>
+		/// Первичное создание сущностей в базу данных
+		/// </summary>
+		/// <remarks>
+		/// 1 - платформа
+		/// 3 - гейта к этой платформе
+		/// 2 - расписания к двум гейтам
+		/// 1 - компания
+		/// 1 - расписание к компании
+		/// </remarks>
 		public static void Seed(ModelBuilder builder)
 		{
 			var platform = new Platform() { 
