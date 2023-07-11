@@ -6,6 +6,17 @@ namespace TimeSlots.DataBase.Seed
 {
 	public class SeedDatabase
 	{
+
+		/// <summary>
+		/// Первичное создание сущностей в базу данных
+		/// </summary>
+		/// <remarks>
+		/// 1 - платформа
+		/// 3 - гейта к этой платформе
+		/// 2 - расписания к двум гейтам
+		/// 1 - компания
+		/// 1 - расписание к компании
+		/// </remarks>
 		public static void Seed(ModelBuilder builder)
 		{
 			var platform = new Platform() { 
@@ -62,10 +73,23 @@ namespace TimeSlots.DataBase.Seed
 				TaskTypes = new List<TaskType> { TaskType.Loading}
 			};
 
+			var platformFavorite = new PlatformFavorite()
+			{
+				Id = Guid.NewGuid(),
+				PlatformId = platform.Id,
+				CompanyId = company.Id,
+				MaxTaskCount = random.Next(1, 11),
+				DaysOfWeek = new List<DayOfWeek> { DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday },
+				From = TimeSpan.Parse("12:00:00"),
+				To = TimeSpan.Parse("18:00:00"),
+				TaskTypes = new List<TaskType> { TaskType.Unloading}
+			};
+
 			builder.Entity<Platform>().HasData(platform);
 			builder.Entity<Gate>().HasData(gate1, gate2, gate3);
 			builder.Entity<Company>().HasData(company);
 			builder.Entity<GateSchedule>().HasData(gateSchedule, gateSchedule1);
+			builder.Entity<PlatformFavorite>().HasData(platformFavorite);
 		}
 	}
 }

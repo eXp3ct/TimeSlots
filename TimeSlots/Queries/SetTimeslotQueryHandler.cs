@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Threading;
 using TimeSlots.DataBase;
 using TimeSlots.Model;
@@ -18,6 +19,13 @@ namespace TimeSlots.Queries
 			_mapper = mapper;
 		}
 
+
+		/// <summary>
+		/// Обработчик бронирования таймслотов
+		/// </summary>
+		/// <param name="request"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns>Сохраняет <typeparamref name="Timeslot"/> в базу данных</returns>
 		public async Task Handle(SetTimeslotQuery request, CancellationToken cancellationToken)
 		{
 			var timeslot = _mapper.Map<Timeslot>(request);
@@ -30,12 +38,56 @@ namespace TimeSlots.Queries
 			await _context.SaveChangesAsync(cancellationToken);
 		}
 
+		/// <summary>
+		/// Получение <typeparamref name="Guid"/> свободного гейта по определенному времени и расписанию
+		/// </summary>
+		/// <param name="request"></param>
+		/// <param name="cancellationToken"></param>
+		/// <returns><typeparamref name="Guid"/> свободного гейта</returns>
 		private async Task<Guid> GetFreeGateId(SetTimeslotQuery request, CancellationToken cancellationToken)
 		{
-			var gates = await _context.Gates.ToListAsync(cancellationToken);
-			var gateSchedules = await _context.GateSchedules.ToListAsync();
-			var gateIds = gateSchedules.Where(s => s.TaskTypes.Contains(request.TaskType) && s.DaysOfWeek.Contains(request.Date.DayOfWeek)).Select(g => g.GateId).ToList();
-			gates = gates.Where(g => gateIds.Contains(g.Id)).ToList();
+			List<Gate> gates;
+
+			Company? company = await _context.Companies.Where(c => c.Id == request.CompanyId).FirstOrDefaultAsync(cancellationToken);
+
+			var platformFavoriteExist = false;
+			if (company != null)
+			{
+				List<PlatformFavorite>? platformFavorites = await _context.PlatformFavorites
+					.Where(p => p.CompanyId == company.Id)
+					.ToListAsync();
+
+				if (platformFavorites != null)
+				{
+					platformFavoriteExist = true;
+				}
+			}
+			if (!platformFavoriteExist)
+			{
+				gates = await _context.Gates
+						.Include(g => g.GateSchedules)
+						.ToListAsync(cancellationToken);
+				var gateSchedules = await _context.GateSchedules.ToListAsync(cancellationToken);
+				List<Guid> gateIds;
+				bool predicate(GateSchedule s) => s.TaskTypes.Contains(request.TaskType) && s.DaysOfWeek.Contains(request.Date.DayOfWeek);
+				if (gateSchedules.Any(predicate))
+				{
+					gateIds = gateSchedules
+						.Where(predicate)
+						.Select(g => g.GateId).ToList();
+					gates = gates.Where(g => gateIds.Contains(g.Id)).ToList();
+				}
+				else
+				{
+					gates = gates.Where(g => g.GateSchedules == null || g.GateSchedules.Count() == 0).ToList();
+				} 
+			}
+			else
+			{
+				gates = await _context.Gates
+					.Where(g => g.PlatformId == company.PlatformId)
+					.ToListAsync(cancellationToken);
+			}
 			var timeslots = await _context.Timeslots
 				.Where(t => t.Date.Date == request.Date.Date)
 				.ToListAsync(cancellationToken);

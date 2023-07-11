@@ -14,6 +14,7 @@ namespace TimeSlots.Pages
         public IEnumerable<Gate>? Gates { get; set; } 
         public IEnumerable<Company>? Companies { get; set; }
         public IEnumerable<Timeslot>? Timeslots { get; set; }
+        public IEnumerable<PlatformFavorite>? PlatformFavorites { get; set; }
 
 		public IndexModel(TimeslotsDbContext context)
 		{
@@ -54,6 +55,8 @@ namespace TimeSlots.Pages
 				.ToListAsync();
 			Timeslots = await _context.Timeslots
 				.ToListAsync();
+            PlatformFavorites = await _context.PlatformFavorites
+                .ToListAsync();
 		}
     }
 }

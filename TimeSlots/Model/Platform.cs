@@ -7,5 +7,6 @@
 		public List<Gate> Gates { get; set; }
 
 		public virtual List<Company> Companies { get; set; }
+		public virtual List<PlatformFavorite> PlatformFavorites { get; set; }
 	}
 }

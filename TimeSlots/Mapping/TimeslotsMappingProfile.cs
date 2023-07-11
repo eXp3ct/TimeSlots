@@ -6,6 +6,10 @@ namespace TimeSlots.Mapping
 {
 	public class TimeslotsMappingProfile : Profile
 	{
+
+		/// <summary>
+		/// Профиль маппинга между SetTimeslotQuery и Timeslot
+		/// </summary>
         public TimeslotsMappingProfile()
         {
 			CreateMap<SetTimeslotQuery, Timeslot>()

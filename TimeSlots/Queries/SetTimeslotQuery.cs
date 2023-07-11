@@ -12,13 +12,15 @@ namespace TimeSlots.Queries
 		public DateTime Start { get; set; }
 		public DateTime End { get; set; }
 		public TaskType TaskType { get; set; }
+		public Guid? CompanyId { get; set; }
 
-		public SetTimeslotQuery(DateTime date, DateTime start, DateTime end, TaskType taskType)
+		public SetTimeslotQuery(DateTime date, DateTime start, DateTime end, TaskType taskType, Guid? companyId)
 		{
 			Date = date;
 			Start = start;
 			End = end;
 			TaskType = taskType;
+			CompanyId = companyId;
 		}
 		public SetTimeslotQuery()
         {

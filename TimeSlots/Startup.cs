@@ -25,6 +25,7 @@ namespace TimeSlots
 			app.UseStaticFiles();
 			app.UseRouting();
 			app.UseAuthorization();
+			app.UseSession();
 			app.UseEndpoints(endpoints =>
 			{
 				endpoints.MapControllers();
@@ -35,6 +36,7 @@ namespace TimeSlots
 		public void ConfigureServices(IServiceCollection services)
 		{
 			services.AddRazorPages();
+			services.AddSession();
 			services.AddControllers();
 			services.AddDbContext<TimeslotsDbContext>(
 				options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))

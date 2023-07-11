@@ -154,6 +154,13 @@
 							<br />
 						}
 					</td>
+					<td>
+						@foreach(var platformFavourite in platform.PlatformFavorites)
+						{
+							@platformFavourite.Id
+							<br />
+						}
+					</td>
 				</tr>
 			}
 		</tbody>
@@ -240,6 +247,53 @@
 		</tbody>
 	</table>
 
+	<h1>PlatformFavorites</h1>
+	<table>
+		<thead>
+			<tr>
+				<td>Id</td>
+				<td>PlatformId</td>
+				<td>CompanyId</td>
+				<td>MaxTaskCount</td>
+				<td>DaysOfWeekstring</td>
+				<td>DaysOfWeek</td>
+				<td>From</td>
+				<td>To</td>
+				<td>TaskTypesString</td>
+				<td>TaskTypes</td>
+			</tr>
+		</thead>
+		<tbody>
+			@foreach (var platformFavorite in Model.PlatformFavorites)
+			{
+				<tr>
+					<td>@platformFavorite.Id</td>
+					<td>@platformFavorite.PlatformId</td>
+					<td>@platformFavorite.CompanyId</td>
+					<td>@platformFavorite.MaxTaskCount</td>
+					<td>@platformFavorite.DaysOfWeekString</td>
+					<td>
+						@foreach (var day in platformFavorite.DaysOfWeek)
+						{
+							@day.ToString()
+							<br />
+						}
+					</td>
+					<td>@platformFavorite.From</td>
+					<td>@platformFavorite.To</td>					
+					<td>@platformFavorite.TaskTypesString</td>
+					<td>
+						@foreach (var task in platformFavorite.TaskTypes)
+						{
+							@task.ToString()
+							<br />
+						}
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
 	<h1>Companies</h1>
 	<table>
 		<thead>
@@ -258,6 +312,13 @@
 					<td>@company.Name</td>
 					<td>@company.PlatformId</td>
 					<td>@company.GateSchedule.Id</td>
+					<td>
+						@foreach(var platformFavourite in company.PlatformFavorites)
+						{
+							@platformFavourite.Id
+							<br />
+						}
+					</td>
 				</tr>
 			}
 		</tbody>
