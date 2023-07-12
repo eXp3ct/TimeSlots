@@ -4,16 +4,17 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading;
 using TimeSlots.DataBase;
+using TimeSlots.DataBase.Interfaces;
 using TimeSlots.Model;
 
 namespace TimeSlots.Queries
 {
 	public class SetTimeslotQueryHandler : IRequestHandler<SetTimeslotQuery>
 	{
-		private readonly TimeslotsDbContext _context;
+		private readonly IAppDbContext _context;
 		private readonly IMapper _mapper;
 
-		public SetTimeslotQueryHandler(TimeslotsDbContext context, IMapper mapper)
+		public SetTimeslotQueryHandler(IAppDbContext context, IMapper mapper)
 		{
 			_context = context;
 			_mapper = mapper;

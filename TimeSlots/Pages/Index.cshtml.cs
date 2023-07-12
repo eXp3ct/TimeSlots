@@ -1,14 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.EntityFrameworkCore;
-using TimeSlots.DataBase;
+using TimeSlots.DataBase.Interfaces;
 using TimeSlots.Model;
 
 namespace TimeSlots.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly TimeslotsDbContext _context;
+        private readonly IAppDbContext _context;
         public IEnumerable<Platform>? Platforms { get; set; }
         public IEnumerable<GateSchedule>? GatesSchedules { get; set; }
         public IEnumerable<Gate>? Gates { get; set; } 
@@ -16,7 +16,7 @@ namespace TimeSlots.Pages
         public IEnumerable<Timeslot>? Timeslots { get; set; }
         public IEnumerable<PlatformFavorite>? PlatformFavorites { get; set; }
 
-		public IndexModel(TimeslotsDbContext context)
+		public IndexModel(IAppDbContext context)
 		{
 			_context = context;
 		}

@@ -1,10 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TimeSlots.DataBase.Interfaces;
 using TimeSlots.DataBase.Seed;
 using TimeSlots.Model;
 
 namespace TimeSlots.DataBase
 {
-	public class TimeslotsDbContext : DbContext
+    public class TimeslotsDbContext : DbContext, IAppDbContext
 	{
 		public DbSet<Timeslot> Timeslots { get; set; }
 		public DbSet<Gate> Gates { get; set; }

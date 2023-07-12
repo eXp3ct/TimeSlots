@@ -38,9 +38,10 @@ namespace TimeSlots
 			services.AddRazorPages();
 			services.AddSession();
 			services.AddControllers();
-			services.AddDbContext<TimeslotsDbContext>(
-				options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
-				);
+			//services.AddDbContext<TimeslotsDbContext>(
+			//	options => options.UseSqlite(Configuration.GetConnectionString("DefaultConnection"))
+			//	);
+			services.AddPersistance(Configuration);
 			services.AddMvc();
 			services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
 			services.AddAutoMapper(Assembly.GetExecutingAssembly());

@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using TimeSlots.DataBase;
+using TimeSlots.DataBase.Interfaces;
 using TimeSlots.Extensions;
 using TimeSlots.Model;
 
@@ -12,11 +13,11 @@ namespace TimeSlots.Queries
 	{
 		private const int PalletTime = 5;
 		private const int TimeParity = 30;
-		private readonly TimeslotsDbContext _context;
+		private readonly IAppDbContext _context;
 		private TimeOnly _gateStart = new(0, 0, 0);
 		private TimeOnly _gateEnd = new(23, 30, 0);
 
-		public GetTimeslotsQueryHandler(TimeslotsDbContext context)
+		public GetTimeslotsQueryHandler(IAppDbContext context)
 		{
 			_context = context;
 		}
